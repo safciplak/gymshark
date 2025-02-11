@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pack Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pack Calculator</h1>
+        <p>Available pack sizes: 250, 500, 1000, 2000, 5000</p>
+        
+        <div>
+            <label for="orderAmount">Order Amount:</label>
+            <input type="number" id="orderAmount" min="1">
+            <button onclick="calculatePacks()">Calculate</button>
+        </div>
+
+        <div id="result" class="result">
+            <h3>Result:</h3>
+            <p>Order Amount: <span id="requestedAmount"></span></p>
+            <p>Packs to send:</p>
+            <ul id="packsList"></ul>
+            <p>Total Items: <span id="totalItems"></span></p>
+        </div>
+    </div>
+
+    <script>
+        async function calculatePacks() {
+            const orderAmount = document.getElementById('orderAmount').value;
+            
+            try {
+                const response = await fetch('http://localhost:8081/calculate-packs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ orderAmount: parseInt(orderAmount) })
+                });
+
+                const data = await response.json();
+                
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('requestedAmount').textContent = data.orderAmount;
+                
+                const packsList = document.getElementById('packsList');
+                packsList.innerHTML = '';
+                
+                for (const [size, count] of Object.entries(data.packs)) {
+                    const li = document.createElement('li');
+                    li.textContent = `${count} x ${size} items`;
+                    packsList.appendChild(li);
+                }
+                
+                document.getElementById('totalItems').textContent = data.totalItems;
+            } catch (error) {
+                alert('Error calculating packs: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html> 
